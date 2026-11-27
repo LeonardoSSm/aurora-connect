@@ -4,16 +4,16 @@ Baseado no roadmap original do README. Cada ciclo só começa com autorização 
 revisão do ciclo anterior. Os ciclos futuros são acompanhados como issues no GitHub
 (rótulo `roadmap`).
 
-| Ciclo | Tema | Estado |
-|---|---|---|
-| 01 | Fundação Windows, pareamento e transporte autenticado | **Em revisão** (este PR) |
-| 02 | Mouse e teclado, bordas, recuperação de foco, emergência | Planejado |
-| 03 | Layout visual multimonitor, DPI, hotplug e perfis | Planejado |
-| 04 | Clipboard texto/imagem e privacidade | Planejado |
-| 05 | Arquivos/pastas, cancelamento e integridade | Planejado |
-| 06 | Reconexão avançada, carga, segurança, instalador e autostart | Planejado |
-| 07 | Linux/macOS após pesquisa | Planejado |
-| 08 | Integração opcional Central/Control | Planejado |
+| Ciclo | Tema | Issue | Estado |
+|---|---|---|---|
+| 01 | Fundação Windows, pareamento e transporte autenticado | [#2](https://github.com/LeonardoSSm/aurora-connect/issues/2) | **Em revisão** (este PR) |
+| 02 | Mouse e teclado, bordas, recuperação de foco, emergência | [#3](https://github.com/LeonardoSSm/aurora-connect/issues/3) | Planejado |
+| 03 | Layout visual multimonitor, DPI, hotplug e perfis | [#4](https://github.com/LeonardoSSm/aurora-connect/issues/4) | Planejado |
+| 04 | Clipboard texto/imagem e privacidade | [#5](https://github.com/LeonardoSSm/aurora-connect/issues/5) | Planejado |
+| 05 | Arquivos/pastas, cancelamento e integridade | [#6](https://github.com/LeonardoSSm/aurora-connect/issues/6) | Planejado |
+| 06 | Reconexão avançada, carga, segurança, instalador e autostart | [#7](https://github.com/LeonardoSSm/aurora-connect/issues/7) | Planejado |
+| 07 | Linux/macOS após pesquisa | [#8](https://github.com/LeonardoSSm/aurora-connect/issues/8) | Planejado |
+| 08 | Integração opcional Central/Control | [#9](https://github.com/LeonardoSSm/aurora-connect/issues/9) | Planejado |
 
 ## Ciclo 01 — Fundação e conectividade
 
