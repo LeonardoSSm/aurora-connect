@@ -1,41 +1,106 @@
 # Aurora Connect
 
-> Dois computadores. Um único controle.
+> **Dois computadores. Um único controle.**
 
-**Estado:** planejamento / backlog P1 (prioridade proposta), 26/11/2026. Nenhum recurso implementado.
+**Estado:** Ciclo 01 concluído (Fundação arquitetural e conectividade autenticada em Windows).
 
-## Visão e motivação
-Integrar desktop, notebook e futuros computadores em uma estação de trabalho, usando um único mouse e teclado, sem trocar periféricos ou recorrer ao touchpad do notebook. A ideia nasce da dificuldade de utilizar Mouse Without Borders. Cada computador continua executando seus próprios programas e SO. Não é streaming de tela nem KVM de vídeo.
+O **Aurora Connect** integra o ecossistema Aurora com o objetivo de permitir que múltiplos computadores compartilhem mouse, teclado, clipboard e arquivos através da rede local — operando de maneira 100% local, sem serviços externos, contas em nuvem, internet ou inteligência artificial.
 
-## Requisitos e experiência
-- Mouse e teclado compartilhados pela LAN: cursor cruza a borda configurada, foco passa ao dispositivo remoto e teclado acompanha; retorno imediato ao host.
-- Clipboard bidirecional de texto e imagens, com opt-in, deduplicação e bloqueio por dispositivo.
-- Transferência de arquivos/pastas (inclusive copiar/colar quando viável), progresso, confirmação, cancelamento e verificação de integridade.
-- Canvas visual de topologia com múltiplos monitores por máquina, posições relativas (esquerda/direita/acima/abaixo), DPI, resolução, offsets e hotplug; não interferir entre monitores locais.
-- Descoberta automática, pareamento confirmado, conexão manual quando descoberta falhar, reconexão, autostart opcional, status/latência, dispositivos confiáveis, toggles e botão de desconexão.
-- Perfis de workspace, atalhos de troca, suporte a mais de dois computadores; Windows primeiro, Linux e macOS depois.
-- Operação independente de internet, AI e Nexus; integração opcional com Central (interface/lançamento) e Control (estado técnico, sem conteúdo de clipboard).
+---
 
-## Arquitetura proposta
-Tauri 2, React/TypeScript, Rust, APIs nativas de entrada e clipboard por SO, TCP/TLS autenticado, mDNS/Bonjour para descoberta, SQLite ou armazenamento local equivalente e cofre de credenciais do SO. Separar protocolo, transporte, sessão, topologia, adaptadores nativos e UI. Host captura eventos, cliente injeta somente em sessão autorizada; evitar eco/loops. Canal de eventos de baixa latência separado de transferências grandes, filas limitadas, backpressure e sequência. Liberar teclas/modificadores/botões após perda de foco ou desconexão; atalho de emergência local. Avaliar Raw Input, hooks e SendInput/UIPI no Windows; Wayland e permissões macOS exigem pesquisa. Não exigir administrador por padrão.
+## Escopo do Ciclo 01 (Implementado)
 
-## Segurança
-Pareamento com confirmação local e identidade criptográfica verificada; mDNS não implica confiança. TLS, revogação, autorização por capacidade, proteção contra replay e limites de taxa/tamanho. Não capturar teclas permanentemente, registrar clipboard ou contornar UAC/tela segura. Nenhum input remoto antes do consentimento. Arquivos com destino controlado, saneamento de nomes, proteção contra path traversal/symlinks e sobrescrita acidental, hash e escrita atômica. Não abrir portas públicas. Auditar IPC, CSP e capabilities Tauri. Testar rede hostil, impostores e desconexão.
+Este ciclo estabelece a fundação de segurança, rede, sessão e interface desktop em Windows:
 
-## Roadmap
-1. Fundação Windows, pareamento e transporte autenticado.
-2. Mouse e teclado, bordas, recuperação de foco, emergência.
-3. Layout visual multimonitor, DPI, hotplug e perfis.
-4. Clipboard texto/imagem e privacidade.
-5. Arquivos/pastas, cancelamento e integridade.
-6. Reconexão, carga, segurança, instalador e autostart.
-7. Linux/macOS após pesquisa.
-8. Integração opcional Central/Control.
+- **Identidade criptográfica individual**: par de chaves Ed25519 por dispositivo; identificador canônico derivado de `SHA-256(SubjectPublicKeyInfo)` em Base32; chave privada armazenada exclusivamente no cofre de credenciais do sistema operacional (Windows Credential Manager / DPAPI).
+- **Transporte autenticado e criptografado**: TCP + **TLS 1.3 mútuo** (`rustls` + `ring`), sem 0-RTT e sem retomada de sessão, com fixação de chave pública (*certificate pinning*).
+- **Descoberta na rede local (mDNS)**: anúncio e localização via `_aurora-connect._tcp.local.`. Dispositivos descobertos são sempre exibidos como **não verificados** até o pareamento explícito.
+- **Conexão manual por endereço IP**: conexão direta a endereços IPv4/IPv6 da rede local quando mDNS estiver desativado ou bloqueado pela rede.
+- **Pareamento seguro com confirmação mútua**: código SAS de 6 dígitos derivado do *TLS 1.3 Keying Material Exporter* (RFC 8446 §7.5), exigindo confirmação explícita do usuário nos dois computadores.
+- **Persistência e revogação de confiança**: registro local com escrita atômica (`trusted_devices.json`, apenas metadados públicos) e revogação imediata com encerramento de sessão ativa.
+- **Gerenciamento de sessões e telemetria real**: heartbeat bidirecional (`ping`/`pong`), medição real de latência RTT (última amostra e média móvel exponencial), detecção de desconexão inesperada, deduplicação determinística e reconexão automática com *backoff* exponencial.
+- **Defesa contra abuso e falhas**: política estrita de endereços locais (bloqueio de IPs públicos), limite de tamanho de frame (64 KiB), numeração de sequência monotônica anti-replay, *token bucket* por conexão, limites de conexões globais/por IP e *capabilities* mínimas no Tauri 2.
+- **Interface Aurora em português brasileiro**: tema escuro do ecossistema Aurora, suporte a movimento reduzido (`prefers-reduced-motion`) e área estrutural já preparada para o futuro canvas visual multimonitor (Ciclo 03).
 
-## Validação
-Desktop e notebook reais, múltiplos monitores, DPI, Wi-Fi/Ethernet, perda de rede, suspensão, reinício, teclas presas, clipboard concorrente, dispositivos não pareados, transferência interrompida. Medir latência/jitter e CPU antes de prometer metas. MVP: Windows↔Windows estável. Não antecipar integrações.
+> **Fora do escopo do Ciclo 01:** captura/injeção de mouse e teclado (Ciclo 02), canvas interativo multimonitor (Ciclo 03), clipboard compartilhado (Ciclo 04) e transferência de arquivos (Ciclo 05). Nenhum componente futuro possui implementação fictícia.
 
-## Referências e decisões pendentes
-- [Deskflow](https://github.com/deskflow/deskflow): referência de input/clipboard multiplataforma.
-- [PowerToys](https://github.com/microsoft/PowerToys): Mouse Without Borders, UX e arquivos.
-Avaliar licença, manutenção, ameaças e compatibilidade antes de reutilizar código. Protocolo final, biblioteca TLS, política de clipboard, UX de pareamento, licença e integração nativa de arquivos ainda em aberto. Não publicar dados pessoais ou detalhes de redes privadas.
+---
+
+## Estrutura do projeto
+
+```text
+aurora-connect/
+├── crates/
+│   ├── aurora-protocol/   # Mensagens v1, framing (64 KiB máx.), validação estrita e sequência anti-replay
+│   ├── aurora-core/       # Identidade Ed25519, TLS 1.3 mútuo, mDNS, pareamento, sessões, registro e políticas
+│   └── aurora-node/       # Nó headless de desenvolvimento para testes entre processos e validação física
+├── src-tauri/             # Aplicação desktop Tauri 2, cofre de credenciais do SO e comandos IPC validados
+├── src/                   # Interface React 19 + TypeScript + Vite (identidade visual Aurora)
+└── docs/                  # Documentação arquitetural, protocolo, segurança, modelo de ameaças e ciclos
+```
+
+---
+
+## Documentação técnica
+
+- [`docs/architecture.md`](docs/architecture.md) — Arquitetura em camadas, responsabilidades, concorrência, persistência e ADRs.
+- [`docs/protocol.md`](docs/protocol.md) — Especificação do protocolo v1 (mDNS, TLS 1.3, framing, handshake, pareamento e limites).
+- [`docs/security.md`](docs/security.md) — Decisões criptográficas, superfície IPC, CSP, logs e controles obrigatórios.
+- [`docs/threat-model.md`](docs/threat-model.md) — Modelo de ameaças STRIDE, premissas, mitigações e riscos residuais.
+- [`docs/roadmap.md`](docs/roadmap.md) — Roadmap completo (Ciclos 01 a 08).
+- [`docs/cycle-01.md`](docs/cycle-01.md) — Registro completo do Ciclo 01: decisões, evidências de validação, limitações e roteiro de validação física em duas máquinas.
+
+---
+
+## Desenvolvimento e validação local
+
+### Pré-requisitos (Windows)
+
+- **Node.js** 20+ e **npm**
+- **Rust** (`stable-x86_64-pc-windows-msvc`) com `rustfmt` e `clippy`
+- **Visual Studio 2022 Build Tools** (workload *Desenvolvimento para desktop com C++*)
+- **Microsoft Edge WebView2 Runtime** (pré-instalado no Windows 11)
+
+### Comandos principais
+
+```powershell
+# Instalar dependências do frontend
+npm install
+
+# Executar em modo desenvolvimento desktop
+npx tauri dev
+
+# Verificações de qualidade e testes TypeScript
+npm run lint
+npm run typecheck
+npm test
+
+# Formatação, análise estática e testes Rust (inclui testes entre processos)
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+
+# Gerar build desktop de produção (Windows)
+npx tauri build
+```
+
+---
+
+## Roadmap resumido
+
+1. **Ciclo 01:** Fundação Windows, pareamento e transporte autenticado *(concluído)*
+2. **Ciclo 02:** Mouse e teclado, bordas, recuperação de foco e atalho de emergência
+3. **Ciclo 03:** Layout visual multimonitor, DPI, hotplug e perfis
+4. **Ciclo 04:** Clipboard texto/imagem e controles de privacidade
+5. **Ciclo 05:** Transferência de arquivos/pastas, cancelamento e integridade
+6. **Ciclo 06:** Reconexão avançada, testes de carga, auditoria, instalador e autostart
+7. **Ciclo 07:** Suporte a Linux e macOS após pesquisa de plataforma
+8. **Ciclo 08:** Integração opcional com Aurora Central e Aurora Control
+
+---
+
+## Referências
+
+- [Ecossistema Aurora](https://aurora-ecosystem-sousa.vercel.app)
+- [Deskflow](https://github.com/deskflow/deskflow) — referência conceitual de compartilhamento de periféricos
+- [Microsoft PowerToys (Mouse Without Borders)](https://github.com/microsoft/PowerToys) — referência de UX em Windows

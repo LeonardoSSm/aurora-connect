@@ -1,0 +1,17 @@
+{
+  "identifier": "main-capability",
+  "description": "Privilégios mínimos para a janela principal do Aurora Connect (Ciclo 01).",
+  "windows": ["main"],
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-get-snapshot",
+    "allow-connect-address",
+    "allow-connect-device",
+    "allow-respond-pairing",
+    "allow-disconnect-device",
+    "allow-revoke-device",
+    "allow-update-settings",
+    "allow-get-build-info"
+  ]
+}
