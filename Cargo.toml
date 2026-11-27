@@ -1,0 +1,47 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/aurora-protocol",
+  "crates/aurora-core",
+  "crates/aurora-node",
+  "src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+authors = ["Leonardo Sousa"]
+repository = "https://github.com/LeonardoSSm/aurora-connect"
+publish = false
+
+[workspace.dependencies]
+aurora-protocol = { path = "crates/aurora-protocol" }
+aurora-core = { path = "crates/aurora-core" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util"] }
+tokio-util = { version = "0.7", default-features = false }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "logging"] }
+rcgen = { version = "0.13", default-features = false, features = ["crypto", "ring"] }
+x509-parser = "0.16"
+sha2 = "0.10"
+data-encoding = "2"
+rand = "0.8"
+hex = "0.4"
+zeroize = { version = "1", features = ["zeroize_derive"] }
+mdns-sd = "0.13"
+if-addrs = "0.13"
+gethostname = "0.5"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
